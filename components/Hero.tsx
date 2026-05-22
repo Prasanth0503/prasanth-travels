@@ -1,6 +1,6 @@
 "use client";
 
-const WHATSAPP_NUMBER = "919876543210"; // TODO: Replace with your number (no + or spaces)
+const WHATSAPP_NUMBER = "13123998042"; // TODO: Replace with your number (no + or spaces)
 const WHATSAPP_MESSAGE = encodeURIComponent("Hi! I'd like to plan a trip with you.");
 
 export default function Hero() {
