@@ -1,5 +1,5 @@
 // TODO: Replace with your WhatsApp number (country code + number, no + or spaces)
-const WHATSAPP_NUMBER = "919876543210";
+const WHATSAPP_NUMBER = "13123998042";
 const WHATSAPP_MESSAGE = encodeURIComponent(
   "Hi Prasanth! I'd love to plan a trip. Can you help me?"
 );
