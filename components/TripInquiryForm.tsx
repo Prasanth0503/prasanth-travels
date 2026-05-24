@@ -525,7 +525,7 @@ export default function TripInquiryForm() {
               <p className="font-semibold text-[#1A1A1A] mb-3">Your trip summary</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[#6B6B6B]">
                 <span>📍 Destination</span><span className="text-[#1A1A1A] font-medium">{form.destination}</span>
-                <span>📅 Dates</span><span className="text-[#1A1A1A] font-medium">{form.travel_dates}</span>
+                <span>📅 Dates</span><span className="text-[#1A1A1A] font-medium">{formatDateRange(form.travel_date_range)}</span>
                 <span>👥 Travelers</span><span className="text-[#1A1A1A] font-medium">{form.traveler_count} {form.traveler_count === 1 ? "person" : "people"}</span>
                 <span>🎯 Style</span><span className="text-[#1A1A1A] font-medium capitalize">{form.trip_style || "—"}</span>
                 <span>💰 Budget</span><span className="text-[#1A1A1A] font-medium capitalize">{form.budget_level || "—"}</span>
