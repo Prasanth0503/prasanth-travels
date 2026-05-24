@@ -1,12 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { format } from "date-fns";
+import type { DateRange } from "react-day-picker";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const WHATSAPP_NUMBER = "13123998042"; // TODO: replace
 
 type FormData = {
   destination: string;
   travel_dates: string;
+  travel_date_range: DateRange | undefined;
   traveler_count: number;
   traveler_type: string;
   trip_style: string;
@@ -22,6 +27,7 @@ type FormData = {
 const EMPTY: FormData = {
   destination: "",
   travel_dates: "",
+  travel_date_range: undefined,
   traveler_count: 2,
   traveler_type: "",
   trip_style: "",
@@ -74,20 +80,31 @@ export default function TripInquiryForm() {
   };
 
   const canNext = () => {
-    if (step === 1) return form.destination.trim() && form.travel_dates.trim() && form.traveler_count > 0;
+    if (step === 1) return form.destination.trim() && form.travel_date_range?.from && form.travel_date_range?.to && form.traveler_count > 0;
     if (step === 2) return form.traveler_type && form.trip_style && form.budget_level;
     if (step === 3) return form.interests.length > 0 && form.activity_pace;
     return true;
   };
 
+  const formatDateRange = (range: DateRange | undefined) => {
+    if (!range?.from) return "";
+    if (!range.to) return format(range.from, "MMM d, yyyy");
+    return `${format(range.from, "MMM d")} – ${format(range.to, "MMM d, yyyy")}`;
+  };
+
   const submit = async () => {
     setState("loading");
     setErrorMsg("");
+    // Format the date range for submission
+    const submissionData = {
+      ...form,
+      travel_dates: formatDateRange(form.travel_date_range),
+    };
     try {
       const res = await fetch("/api/save-itinerary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(submissionData),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Something went wrong");
@@ -100,7 +117,7 @@ export default function TripInquiryForm() {
   };
 
   const waMessage = encodeURIComponent(
-    `Hi! I've submitted a trip inquiry for *${form.destination}* (${form.travel_dates}) — Reference ID: ${savedId}. Looking forward to hearing from you!`
+    `Hi! I've submitted a trip inquiry for *${form.destination}* (${formatDateRange(form.travel_date_range)}) — Reference ID: ${savedId}. Looking forward to hearing from you!`
   );
 
   if (state === "success") {
@@ -200,13 +217,79 @@ export default function TripInquiryForm() {
               <label className="block text-sm font-semibold text-[#1A1A1A] mb-2">
                 Travel dates <span className="text-[#C4713A]">*</span>
               </label>
-              <input
-                type="text"
-                placeholder="e.g. Dec 15–25, 2025 or 10 days in March"
-                value={form.travel_dates}
-                onChange={(e) => set("travel_dates", e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-[#E8E0D4] focus:border-[#2D6A8F] focus:ring-2 focus:ring-[#2D6A8F]/10 outline-none transition-all text-[#1A1A1A] placeholder:text-[#B0A89A] text-base bg-white"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={`w-full px-4 py-3 rounded-xl border border-[#E8E0D4] focus:border-[#2D6A8F] focus:ring-2 focus:ring-[#2D6A8F]/10 outline-none transition-all text-base bg-white text-left flex items-center justify-between ${
+                      form.travel_date_range?.from ? "text-[#1A1A1A]" : "text-[#B0A89A]"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-[#9B9B9B]"
+                      >
+                        <path d="M8 2v4" />
+                        <path d="M16 2v4" />
+                        <rect width="18" height="18" x="3" y="4" rx="2" />
+                        <path d="M3 10h18" />
+                      </svg>
+                      {form.travel_date_range?.from ? (
+                        formatDateRange(form.travel_date_range)
+                      ) : (
+                        "Select start & end dates"
+                      )}
+                    </span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-[#9B9B9B]"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="range"
+                    defaultMonth={form.travel_date_range?.from}
+                    selected={form.travel_date_range}
+                    onSelect={(range) => set("travel_date_range", range)}
+                    numberOfMonths={2}
+                    disabled={{ before: new Date() }}
+                  />
+                  {form.travel_date_range?.from && form.travel_date_range?.to && (
+                    <div className="px-4 pb-4 pt-0 border-t border-[#E8E0D4] mt-2">
+                      <p className="text-sm text-[#6B6B6B] pt-3">
+                        <span className="font-medium text-[#1A1A1A]">
+                          {Math.ceil(
+                            (form.travel_date_range.to.getTime() - form.travel_date_range.from.getTime()) /
+                              (1000 * 60 * 60 * 24)
+                          ) + 1}{" "}
+                          days
+                        </span>{" "}
+                        • {format(form.travel_date_range.from, "EEE, MMM d")} → {format(form.travel_date_range.to, "EEE, MMM d, yyyy")}
+                      </p>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
               <label className="block text-sm font-semibold text-[#1A1A1A] mb-2">
