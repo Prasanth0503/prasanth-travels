@@ -1,8 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase, type Itinerary } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
+
+// TypeScript type matching the exact schema
+type Itinerary = {
+  id?: string;
+  destination: string;
+  travel_dates: string;
+  traveler_count: number;
+  traveler_type: "couple" | "family" | "solo" | "friends" | "senior" | null;
+  trip_style: "luxury" | "adventure" | "relaxed" | "cultural" | "wellness" | "budget" | null;
+  budget_level: "budget" | "mid-range" | "premium" | "luxury" | null;
+  accommodation_preference: string | null;
+  food_preferences: string | null;
+  interests: string[];
+  activity_pace: "light" | "moderate" | "packed" | null;
+  arrival_airport: string | null;
+  special_requests: string | null;
+  status?: "new" | "processing" | "generated" | "sent" | "confirmed" | "cancelled";
+  generated_itinerary?: Record<string, unknown> | null;
+  created_at?: string;
+  updated_at?: string;
+};
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = await createClient();
     const body: Itinerary = await req.json();
 
     // Validate required fields
@@ -54,6 +76,8 @@ export async function POST(req: NextRequest) {
 
 // GET — fetch recent itineraries (useful for admin/testing)
 export async function GET() {
+  const supabase = await createClient();
+  
   const { data, error } = await supabase
     .from("itineraries")
     .select("*")

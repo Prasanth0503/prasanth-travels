@@ -10,8 +10,8 @@ const WHATSAPP_NUMBER = "13123998042"; // TODO: replace
 
 type FormData = {
   destination: string;
-  travel_dates: string; // formatted string sent to API
-  travel_date_range: DateRange | undefined; // UI only — never sent to API
+  travel_dates: string;
+  travel_date_range: DateRange | undefined;
   traveler_count: number;
   traveler_type: string;
   trip_style: string;
@@ -95,11 +95,9 @@ export default function TripInquiryForm() {
   const submit = async () => {
     setState("loading");
     setErrorMsg("");
-    // Strip travel_date_range (not a DB column) and format travel_dates as a string
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { travel_date_range, ...rest } = form;
+    // Format the date range for submission
     const submissionData = {
-      ...rest,
+      ...form,
       travel_dates: formatDateRange(form.travel_date_range),
     };
     try {
